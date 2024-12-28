@@ -1,13 +1,12 @@
 import asyncio
 import pygame
 import moteus
-import math
 from Homing_sequence_function import home_motor
 from ik_equations import calculate_motor_positions
 
 x_scale_factor = 120
 y_scale_factor = 70
-accelleration = 10
+acceleration = 10
 velocity = 1
 torque_v = 0.5
 reduction_ratio = 6
@@ -54,8 +53,8 @@ async def main():
                 m1, m2 = angles
 
                 # Command the motors to the calculated positions
-                await c1.set_position(position=m1, velocity_limit=velocity, accel_limit=accelleration, maximum_torque=torque_v, query=True)
-                await c2.set_position(position=m2, velocity_limit=velocity, accel_limit=accelleration, maximum_torque=torque_v, query=True)
+                await c1.set_position(position=m1, velocity_limit=velocity, accel_limit=acceleration, maximum_torque=torque_v, query=True)
+                await c2.set_position(position=m2, velocity_limit=velocity, accel_limit=acceleration, maximum_torque=torque_v, query=True)
 
             await asyncio.sleep(0.02)  # Small sleep interval for better performance
 
