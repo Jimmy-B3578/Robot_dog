@@ -9,10 +9,12 @@ from ik_equations import calculate_motor_positions
 x_scale_factor = 50
 y_scale_factor = 50
 acceleration = 10
-velocity = 1  # Units per second
-torque_v = 0.5
+velocity = 3
+kp = 7
+kd = 2
 reduction_ratio = 6
-time_to_move = 1  # Fixed time to move between two points in seconds
+time_to_move = 1
+steps_scale = 75
 
 c1 = moteus.Controller(1)
 c2 = moteus.Controller(2)
@@ -73,7 +75,7 @@ async def main():
             distance = math.sqrt(dx**2 + dy**2)
 
             # Calculate the number of steps based on distance and desired time to move
-            num_steps = max(10, int(distance * 50))  # Scaling factor (50) controls smoothness
+            num_steps = max(10, int(distance * steps_scale))  # Scaling factor (50) controls smoothness
 
             # Parametric interpolation with smoothed velocity
             for target_x, target_y, _ in smooth_interpolation(p1, p2, num_steps):
@@ -96,7 +98,8 @@ async def main():
                         position=m1,
                         velocity_limit=velocity,
                         accel_limit=acceleration,
-                        maximum_torque=torque_v,
+                        kp_scale=kp,
+                        kd_scale=kd,
                         watchdog_timeout=math.nan,
                         query=True  # Enable querying to get feedback
                     )
@@ -104,7 +107,8 @@ async def main():
                         position=m2,
                         velocity_limit=velocity,
                         accel_limit=acceleration,
-                        maximum_torque=torque_v,
+                        kp_scale=kp,
+                        kd_scale=kd,
                         watchdog_timeout=math.nan,
                         query=True  # Enable querying to get feedback
                     )
