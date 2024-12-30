@@ -4,10 +4,10 @@ import moteus
 from Homing_sequence_function import home_motor
 from ik_equations import calculate_motor_positions
 
-x_scale_factor = 120
+x_scale_factor = 70
 y_scale_factor = 70
 acceleration = 10
-velocity = 1
+velocity = 50
 torque_v = 0.5
 reduction_ratio = 6
 
