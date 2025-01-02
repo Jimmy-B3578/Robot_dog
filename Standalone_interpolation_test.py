@@ -1,3 +1,6 @@
+# I am trying to achieve a way of providing a start and end point as well as interpolation points and a time to complete the movement and have the motor follow a smooth trajectory
+
+
 import asyncio
 import moteus
 import math
