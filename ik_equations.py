@@ -1,9 +1,10 @@
 import math
 
-async def calculate_motor_positions(x1, y1, gear_reduction):
+async def calculate_motor_positions(x1, y1):
     # offsets
-    x = x1 - 27.972
-    y = y1 - 232.631
+    x = (x1 - 27.972)
+    y = (y1 - 232.631)
+    gear_reduction = 6
 
     # Link lengths in mm
     L1 = 150
@@ -28,4 +29,4 @@ async def calculate_motor_positions(x1, y1, gear_reduction):
     m1 = a1 / 360 * gear_reduction
     m2 = a2 / 360 * gear_reduction
 
-    return round(m1, 3), round(m2, 3)
+    return round(m1, 4), round(m2, 4)
