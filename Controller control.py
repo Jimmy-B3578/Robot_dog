@@ -6,7 +6,7 @@ from ik_equations import calculate_motor_positions
 
 x_scale_factor = 70
 y_scale_factor = 70
-acceleration = 10
+acceleration = 60
 velocity = 50
 torque_v = 0.5
 reduction_ratio = 6
