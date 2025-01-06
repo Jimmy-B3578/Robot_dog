@@ -1,17 +1,15 @@
 import asyncio
 import math
-
-import matplotlib.pyplot as plt
 import moteus
-
+import matplotlib.pyplot as plt
 from ik_equations import calculate_motor_positions
 
 x_scale_factor = 50
 y_scale_factor = 50
 acceleration = 10
 velocity = 3
-kp = 7
-kd = 2
+kp = 1
+kd = 1
 time_to_move = 1
 steps_scale = 75
 
@@ -95,7 +93,7 @@ async def main():
                     # Command the motors and retrieve feedback
                     result1 = await c1.set_position(
                         position=m1,
-                        velocity_limit=velocity,
+                        velocity=velocity,
                         accel_limit=acceleration,
                         kp_scale=kp,
                         kd_scale=kd,
@@ -104,7 +102,7 @@ async def main():
                     )
                     result2 = await c2.set_position(
                         position=m2,
-                        velocity_limit=velocity,
+                        velocity=velocity,
                         accel_limit=acceleration,
                         kp_scale=kp,
                         kd_scale=kd,
