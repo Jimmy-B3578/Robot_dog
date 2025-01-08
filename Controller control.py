@@ -9,7 +9,6 @@ y_scale_factor = 70
 acceleration = 60
 velocity = 50
 torque_v = 0.5
-reduction_ratio = 6
 
 c1 = moteus.Controller(1)
 c2 = moteus.Controller(2)
@@ -48,7 +47,7 @@ async def main():
             target_y = -joystick.get_axis(3) * y_scale_factor
 
             # Calculate joint angles function
-            angles = await calculate_motor_positions(target_x, target_y, reduction_ratio)
+            angles = await calculate_motor_positions(target_x, target_y)
             if angles is not None:
                 m1, m2 = angles
 
