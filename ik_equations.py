@@ -29,4 +29,8 @@ async def calculate_motor_positions(x1, y1):
     m1 = a1 / 360 * gear_reduction
     m2 = a2 / 360 * gear_reduction
 
-    return round(m1, 4), round(m2, 4)
+    # Input is expected to be a coordinate representing millimeters from the 0 position of the leg
+    # Output is given as a motor position relative to the zero position of each motor which is half-way
+    # from either end of the limit of each motor
+
+    return round(m1, 6), round(m2, 6)
