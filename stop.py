@@ -7,8 +7,8 @@ async def main():
     c1 = moteus.Controller(1)
     c2 = moteus.Controller(2)
 
-    await c1.set_position_wait_complete(position=0, watchdog_timeout=math.nan)
-    await c2.set_position_wait_complete(position=0, watchdog_timeout=math.nan)
+    await c1.set_position_wait_complete(position=0, accel_limit=10, watchdog_timeout=math.nan)
+    await c2.set_position_wait_complete(position=0, accel_limit=10, watchdog_timeout=math.nan)
 
     await asyncio.sleep(1)
 
