@@ -11,7 +11,7 @@ c1 = moteus.Controller(1)
 ma = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
 distance = 0.1
-time = 1
+time = 0.2
 velocity = distance / (time / 10)
 
 # Lists to store time, calculated, and actual values
@@ -23,8 +23,8 @@ async def tune_pd_values():
     global time_log, calculated_values, actual_values
 
     # Define ranges for kp_scale and kd_scale
-    kp_values = np.linspace(0.1, 1.0, 10)  # Example range for kp
-    kd_values = np.linspace(0.1, 3.0, 10)  # Example range for kd
+    kp_values = np.linspace(0.01, 2.0, 15)  # Example range for kp
+    kd_values = np.linspace(0.01, 2.0, 15)  # Example range for kd
 
     best_sse = float('inf')
     best_kp = 0
@@ -57,7 +57,7 @@ async def run_test(kp_scale, kd_scale):
     start_time = asyncio.get_event_loop().time()
 
     # Move to the initial position and wait for completion
-    await c1.set_position_wait_complete(position=ma[0], velocity_limit=10, accel_limit=10)
+    await c1.set_position_wait_complete(position=ma[0], velocity_limit=20, accel_limit=20)
 
     for i, position in enumerate(ma):
         elapsed_time = asyncio.get_event_loop().time() - start_time
