@@ -6,9 +6,6 @@ from ik_equations import calculate_motor_positions
 
 x_scale_factor = 70
 y_scale_factor = 70
-acceleration = 60
-velocity = 50
-torque_v = 0.5
 
 c1 = moteus.Controller(1)
 c2 = moteus.Controller(2)
@@ -43,19 +40,25 @@ async def main():
                 await asyncio.sleep(0.5)
                 await home_motor(c1)
 
-            target_x = joystick.get_axis(2) * x_scale_factor
-            target_y = -joystick.get_axis(3) * y_scale_factor
+            if joystick.get_button(1):
+                await calculate_motor_positions(0, -50)
+
+            else:
+                await calculate_motor_positions(0, 0)
+
+            # target_x = joystick.get_axis(2) * x_scale_factor
+            # target_y = -joystick.get_axis(3) * y_scale_factor
 
             # Calculate joint angles function
-            angles = await calculate_motor_positions(target_x, target_y)
-            if angles is not None:
-                m1, m2 = angles
+            # await calculate_motor_positions(target_x, target_y)
 
-                # Command the motors to the calculated positions
-                await c1.set_position(position=m1, velocity_limit=velocity, accel_limit=acceleration, maximum_torque=torque_v, query=True)
-                await c2.set_position(position=m2, velocity_limit=velocity, accel_limit=acceleration, maximum_torque=torque_v, query=True)
+            result1 = await c1.set_position(query=True)
+            result2 = await c2.set_position(query=True)
 
-            await asyncio.sleep(0.02)  # Small sleep interval for better performance
+            motor1_feedback.append(result1.values.get(1, 0))
+            motor2_feedback.append(result2.values.get(1, 0))
+
+            await asyncio.sleep(0.01)  # Small sleep interval for better performance
 
     finally:
         await c1.set_stop()
