@@ -46,11 +46,11 @@ async def main():
             # else:
                 await calculate_motor_positions(0, 0)
 
-            target_x = joystick.get_axis(2) * x_scale_factor
-            target_y = -joystick.get_axis(3) * y_scale_factor
+            # target_x = joystick.get_axis(2) * x_scale_factor
+            # target_y = -joystick.get_axis(3) * y_scale_factor
 
             # Calculate joint angles function
-            await calculate_motor_positions(target_x, target_y)
+            # await calculate_motor_positions(target_x, target_y)
 
             await asyncio.sleep(0.01)  # Small sleep interval for better performance
 
