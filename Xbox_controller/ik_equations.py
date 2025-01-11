@@ -4,13 +4,7 @@ import moteus
 
 # These come from the separate library files
 from ramp import Ramp, LINEAR, ONCEFORWARD
-from my_filter_lib import filter_value  # or inline if you prefer
-from interpolate_points import interpolation_y
-
-# If you do not want multiple files, just define:
-#   filter_value(...)
-#   interpolation_y(...)
-#   in the same file with your main code.
+from interpolate_points import interpolation_y, interpolation_x
 
 # Two moteus motor controllers for demonstration
 c1 = moteus.Controller(1)
@@ -18,27 +12,38 @@ c2 = moteus.Controller(2)
 
 # We'll keep track of the "old" filtered Y so it can accumulate
 _filteredY_old = 0.0
+_filteredX_old = 0.0
 
 async def calculate_motor_positions(x1, y1):
-    global _filteredY_old
+    global _filteredY_old, _filteredX_old
 
     # ----------------------------------------------------------------
     # Step 1: Interpolate Y
     # ----------------------------------------------------------------
-    y_interpolated = interpolation_y(y1, 400)
+
+    y_interpolated = interpolation_y(y1, 500)
+    x_interpolated = interpolation_x(x1, 500)
 
     # ----------------------------------------------------------------
     # Step 2: Filter the newly interpolated Y
     # ----------------------------------------------------------------
-    # y_filtered = filter_value(y_interpolated, _filteredY_old)
-    # _filteredY_old = y_filtered   # update for next time
+
+    def filter_value(new_val, old_val):
+        FILTER = 1
+        return (new_val + (old_val * FILTER)) / (FILTER + 1)
+
+    y_filtered = filter_value(y_interpolated, _filteredY_old)
+    _filteredY_old = y_filtered   # update for next time
+
+    x_filtered = filter_value(x_interpolated, _filteredX_old)
+    _filteredx_old = x_filtered
 
     # ----------------------------------------------------------------
     # Example geometry: the rest of your calculations
     #   (as from your snippet). We replace “y1” with “y_filtered.”
     # ----------------------------------------------------------------
     # Offsets
-    x = (x1 - 27.972)
+    x = (x_interpolated - 27.972)
     # Use filtered Y in geometry, not raw y1
     y = (y_interpolated - 232.631)
 
@@ -67,15 +72,21 @@ async def calculate_motor_positions(x1, y1):
     # ----------------------------------------------------------------
     # Step 3: Send to motors
     # ----------------------------------------------------------------
-    await c1.set_position(
+    result1 = await c1.set_position(
         position=m1,
         accel_limit=20,
-        velocity_limit=50,
+        velocity_limit=math.nan,
+        kp_scale=1,
+        kd_scale=1,
         watchdog_timeout=math.nan
     )
-    await c2.set_position(
+    result2 = await c2.set_position(
         position=m2,
         accel_limit=20,
-        velocity_limit=50,
+        velocity_limit=math.nan,
+        kp_scale=1,
+        kd_scale=1,
         watchdog_timeout=math.nan
     )
+
+    return result1, result2

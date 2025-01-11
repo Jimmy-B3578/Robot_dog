@@ -2,15 +2,12 @@ import asyncio
 import math
 import moteus
 import matplotlib.pyplot as plt
-from ik_equations import calculate_motor_positions
-
-# Scales for your coordinate system
-x_scale_factor = 50
-y_scale_factor = 50
+from Xbox_controller.ik_equations import calculate_motor_positions
+from Xbox_controller.interpolate_points import interpolate_coordinates  # Import the new interpolation function
 
 # Velocity and acceleration parameters sent to Moteus
-acceleration = 10
-velocity = 3
+acceleration = 20
+velocity_limit = 25
 kp = 1
 kd = 1
 
@@ -25,41 +22,21 @@ c2 = moteus.Controller(2)
 
 # Predefined list of coordinates within the range of 1 to -1 for both x and y
 coordinates = [
-    (1.0, 1.0),   # Top-right corner
-    (1.0, -1.0),  # Bottom-right corner
-    (-1.0, -1.0), # Bottom-left corner
-    (-1.0, 1.0),  # Top-left corner
-    (1.0, 1.0)    # Back to top-right corner to close the square
+    (50.0, 50.0),    # Top-right corner
+    (50.0, -50.0),   # Bottom-right corner
+    (-50.0, -50.0),  # Bottom-left corner
+    (-50.0, 50.0),   # Top-left corner
+    (50.0, 50.0)     # Back to top-right corner to close the square
 ]
 
-# Storage for motor target positions, feedback positions, and time
+# Storage for motor target positions, feedback positions, time, and XY coordinates
 time_log = []
 motor1_targets = []
 motor2_targets = []
 motor1_feedback = []
 motor2_feedback = []
-
-def smooth_interpolation(p1, p2, num_steps):
-    """
-    Generates (x, y) points between p1 and p2 using a sinusoidal easing function
-    to smooth velocity over 'num_steps' steps. Now includes the final point.
-    """
-    x1, y1 = p1
-    x2, y2 = p2
-
-    # Calculate direction and distance
-    dx = x2 - x1
-    dy = y2 - y1
-    distance = math.sqrt(dx**2 + dy**2)
-
-    for step in range(num_steps + 1):  # +1 to ensure we include the final point
-        t = step / num_steps if num_steps > 0 else 1.0
-        # Sinusoidal (cosine) easing from 0 to 1
-        smoothed_t = (1 - math.cos(math.pi * t)) / 2
-
-        x_t = x1 + dx * smoothed_t
-        y_t = y1 + dy * smoothed_t
-        yield x_t, y_t, distance
+interpolated_x = []
+interpolated_y = []
 
 async def main():
     # Clear any outstanding faults (with query to verify status if needed)
@@ -72,6 +49,8 @@ async def main():
     motor2_targets.clear()
     motor1_feedback.clear()
     motor2_feedback.clear()
+    interpolated_x.clear()
+    interpolated_y.clear()
 
     current_time = 0.0
 
@@ -81,25 +60,19 @@ async def main():
             p1 = coordinates[i]
             p2 = coordinates[i + 1]
 
-            # Calculate distance between the two points
-            dx = p2[0] - p1[0]
-            dy = p2[1] - p1[1]
-            distance = math.sqrt(dx**2 + dy**2)
-
             # Determine how many interpolation steps
-            num_steps = max(10, int(distance * steps_scale))
+            num_steps = 200
 
-            # Determine the total time to move this segment, scaled by distance
-            segment_time = distance * time_per_unit_distance
+            # Use the imported interpolate_coordinates function
+            interpolated_points = await interpolate_coordinates(p1, p2, num_steps, mode="sinusoidal")
 
-            # Interpolate along p1->p2 with smoothing
-            for target_x, target_y, _ in smooth_interpolation(p1, p2, num_steps):
-                # Scale the coordinates for your mechanism
-                target_x_scaled = target_x * x_scale_factor
-                target_y_scaled = -target_y * y_scale_factor  # Y is inverted if needed
+            for target_x, target_y in interpolated_points:
+                # Store the interpolated coordinates for plotting
+                interpolated_x.append(target_x)
+                interpolated_y.append(target_y)
 
                 # Compute inverse kinematics
-                angles = await calculate_motor_positions(target_x_scaled, target_y_scaled)
+                angles = await calculate_motor_positions(target_x, target_y)
                 if angles is not None:
                     m1, m2 = angles
 
@@ -111,7 +84,7 @@ async def main():
                     # Command the motors
                     result1 = await c1.set_position(
                         position=m1,
-                        velocity=velocity,
+                        velocity_limit=velocity_limit,
                         accel_limit=acceleration,
                         kp_scale=kp,
                         kd_scale=kd,
@@ -120,7 +93,7 @@ async def main():
                     )
                     result2 = await c2.set_position(
                         position=m2,
-                        velocity=velocity,
+                        velocity_limit=velocity_limit,
                         accel_limit=acceleration,
                         kp_scale=kp,
                         kd_scale=kd,
@@ -133,9 +106,9 @@ async def main():
                     motor2_feedback.append(result2.values.get(1, 0))
 
                 # Update time and sleep so each segment lasts 'segment_time'
-                time_per_step = segment_time / (num_steps if num_steps > 0 else 1)
+                time_per_step = 2 / (num_steps if num_steps > 0 else 1)
                 current_time += time_per_step
-                await asyncio.sleep(time_per_step)
+                await asyncio.sleep(0.02)
 
         print("Completed one full loop of the square.")
 
@@ -147,6 +120,9 @@ async def main():
 
         # Plot the results
         plt.figure(figsize=(10, 6))
+
+        # Plot motor targets and feedback positions
+        plt.subplot(2, 1, 1)
         plt.plot(time_log, motor1_targets, label="Motor 1 Target", linestyle="--")
         plt.plot(time_log, motor2_targets, label="Motor 2 Target", linestyle="--")
         plt.plot(time_log, motor1_feedback, label="Motor 1 Feedback", alpha=0.7)
@@ -156,6 +132,19 @@ async def main():
         plt.title("Motor Target vs Feedback Positions Over Time")
         plt.legend()
         plt.grid(True)
+
+        # Plot the interpolated x and y coordinates
+        plt.subplot(2, 1, 2)
+        plt.plot(interpolated_x, interpolated_y, label="Interpolated Path", color="blue")
+        plt.scatter(*zip(*coordinates), color="red", label="Waypoints", zorder=5)
+        plt.xlabel("X Coordinate")
+        plt.ylabel("Y Coordinate")
+        plt.title("Interpolated X-Y Path")
+        plt.legend()
+        plt.grid(True)
+
+        # Show the plots
+        plt.tight_layout()
         plt.show()
 
 if __name__ == '__main__':

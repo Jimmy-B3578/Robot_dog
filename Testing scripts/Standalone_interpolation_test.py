@@ -11,7 +11,7 @@ ma = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
 distance = 0.1
 time = 1
-velocity = distance / (time / 10)
+velocity = d / (time / 10)
 
 # Lists to store time, calculated, and actual values
 time_log = []
@@ -21,6 +21,11 @@ actual_values = []
 async def main():
     global time_log, calculated_values, actual_values
     start_time = asyncio.get_event_loop().time()
+
+    for i in range(len(ma) - 1):
+        f = array[i]
+        n = array[i + 1]
+        d = round(n - f, 5)
 
     # Move to the initial position and wait for completion
     await c1.set_position_wait_complete(position=ma[0], velocity_limit=10, accel_limit=10)
@@ -45,7 +50,7 @@ async def main():
         print(f"Time: {elapsed_time:.2f}s, Target: {position}, Feedback: {motor_feedback:.4f}")
 
         # Wait for 1 second before moving to the next position
-        await asyncio.sleep((time / 10) * 1)
+        await asyncio.sleep(time / 10)
 
     # Stop the motor after finishing
     await c1.set_stop()

@@ -40,23 +40,17 @@ async def main():
                 await asyncio.sleep(0.5)
                 await home_motor(c1)
 
-            if joystick.get_button(1):
+            # if joystick.get_button(1):
                 await calculate_motor_positions(0, -50)
 
-            else:
+            # else:
                 await calculate_motor_positions(0, 0)
 
-            # target_x = joystick.get_axis(2) * x_scale_factor
-            # target_y = -joystick.get_axis(3) * y_scale_factor
+            target_x = joystick.get_axis(2) * x_scale_factor
+            target_y = -joystick.get_axis(3) * y_scale_factor
 
             # Calculate joint angles function
-            # await calculate_motor_positions(target_x, target_y)
-
-            result1 = await c1.set_position(query=True)
-            result2 = await c2.set_position(query=True)
-
-            motor1_feedback.append(result1.values.get(1, 0))
-            motor2_feedback.append(result2.values.get(1, 0))
+            await calculate_motor_positions(target_x, target_y)
 
             await asyncio.sleep(0.01)  # Small sleep interval for better performance
 
