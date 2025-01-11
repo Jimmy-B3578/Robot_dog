@@ -2,7 +2,7 @@ import moteus
 import math
 import asyncio
 
-# Initialize controller
+# Initialize moteus controller
 c1 = moteus.Controller(1)
 
 # List of positions
